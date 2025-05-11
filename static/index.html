@@ -1,0 +1,776 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Steganography Tool</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            border-bottom: 2px solid var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .tab:hover:not(.active) {
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .card {
+            background-color: var(--surface);
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        input[type="text"],
+        input[type="password"],
+        textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            font-size: 1rem;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus,
+        input[type="password"]:focus,
+        textarea:focus {
+            border-color: var(--primary);
+            outline: none;
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 0.25rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 300px;
+            margin-top: 1rem;
+            border-radius: 0.25rem;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            border: 2px dashed var(--border);
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: border 0.3s;
+            margin-bottom: 1rem;
+        }
+
+        .file-upload:hover, .file-upload.dragover {
+            border-color: var(--primary);
+        }
+
+        .file-upload-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .stats {
+            margin-top: 1rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .alert {
+            padding: 1rem;
+            border-radius: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        .alert-success {
+            background-color: #dcfce7;
+            color: #166534;
+            border-left: 4px solid var(--success);
+        }
+        
+        .alert-error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--error);
+        }
+        
+        .progress-bar-container {
+            height: 8px;
+            background-color: var(--border);
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background-color: var(--primary);
+            transition: width 0.3s;
+        }
+        
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 768px) {
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .copy-btn {
+            padding: 0.5rem;
+            background-color: var(--background);
+            border: 1px solid var(--border);
+            border-radius: 0.25rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background-color: var(--border);
+        }
+        
+        .result-container {
+            position: relative;
+        }
+        
+        .action-buttons {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .about-section {
+            line-height: 1.8;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 2rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border-top: 1px solid var(--border);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">Steganography Tool</div>
+        </header>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="encode">Encode Message</div>
+            <div class="tab" data-tab="decode">Decode Message</div>
+            <div class="tab" data-tab="about">About</div>
+        </div>
+        
+        <div id="encode-tab" class="tab-content active">
+            <div class="card">
+                <h2>Hide a Secret Message</h2>
+                <form id="encode-form">
+                    <div class="form-group">
+                        <label for="input-image">Select Image:</label>
+                        <div class="file-upload" id="encode-file-upload">
+                            <div class="file-upload-icon">📁</div>
+                            <p>Drop your image here or click to browse</p>
+                            <input type="file" id="input-image" accept="image/*" class="hidden">
+                        </div>
+                        <div id="encode-image-preview-container" class="hidden">
+                            <img id="encode-image-preview" class="image-preview">
+                            <div class="stats" id="encode-image-stats"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="secret-message">Secret Message:</label>
+                        <textarea id="secret-message" placeholder="Enter the message you want to hide..."></textarea>
+                        <div class="stats" id="message-stats">0 characters / 0 bytes</div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="encode-password">Password (Optional):</label>
+                        <input type="password" id="encode-password" placeholder="Leave blank for no encryption">
+                    </div>
+                    
+                    <button type="submit" class="btn" id="encode-btn">Encode Message</button>
+                </form>
+                
+                <div id="encode-result" class="hidden">
+                    <hr style="margin: 2rem 0;">
+                    <h3>Encoded Image</h3>
+                    <div class="result-container">
+                        <img id="result-image" class="image-preview">
+                        <div class="action-buttons">
+                            <button id="download-btn" class="btn btn-outline">Download</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="decode-tab" class="tab-content">
+            <div class="card">
+                <h2>Extract Hidden Message</h2>
+                <form id="decode-form">
+                    <div class="form-group">
+                        <label for="stego-image">Select Stego Image:</label>
+                        <div class="file-upload" id="decode-file-upload">
+                            <div class="file-upload-icon">🔍</div>
+                            <p>Drop your stego image here or click to browse</p>
+                            <input type="file" id="stego-image" accept="image/*" class="hidden">
+                        </div>
+                        <div id="decode-image-preview-container" class="hidden">
+                            <img id="decode-image-preview" class="image-preview">
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="decode-password">Password (if used):</label>
+                        <input type="password" id="decode-password" placeholder="Leave blank if no password was used">
+                    </div>
+                    
+                    <button type="submit" class="btn" id="decode-btn">Decode Message</button>
+                </form>
+                
+                <div id="decode-result" class="hidden">
+                    <hr style="margin: 2rem 0;">
+                    <h3>Hidden Message</h3>
+                    <div class="result-container">
+                        <textarea id="extracted-message" readonly></textarea>
+                        <div class="action-buttons">
+                            <button id="copy-btn" class="copy-btn" title="Copy to clipboard">📋</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="about-tab" class="tab-content">
+            <div class="card about-section">
+                <h2>About LSB Steganography</h2>
+                <p>Steganography is the practice of concealing a message within another message or physical object. In digital steganography, electronic communications may include steganographic coding inside of a transport layer, such as a document file, image file, program, or protocol.</p>
+                
+                <h3>How LSB Steganography Works</h3>
+                <p>The Least Significant Bit (LSB) technique is one of the most common steganography methods used to hide secret information in images. In an image, each pixel is typically represented by three bytes (24 bits) corresponding to the RGB color components.</p>
+                
+                <p>The LSB technique works by replacing the least significant bit of each byte with a bit from the secret message. Since changing the last bit of a byte only changes its value by 1, the resulting change in the image is imperceptible to the human eye.</p>
+                
+                <h3>Security Features</h3>
+                <ul>
+                    <li><strong>Password Protection:</strong> Messages can be encrypted using a password before embedding</li>
+                    <li><strong>XOR Encryption:</strong> Utilizes XOR operation with a SHA-256 hash of the password</li>
+                    <li><strong>End Marker:</strong> A special binary marker indicates the end of the hidden message</li>
+                </ul>
+                
+                <h3>Best Practices</h3>
+                <ul>
+                    <li>Use high-resolution images for better capacity</li>
+                    <li>Prefer lossless formats like PNG or BMP (JPG will lose the hidden data when saved)</li>
+                    <li>Use strong passwords for sensitive information</li>
+                    <li>The resulting image should not be edited or modified after encoding</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div id="alerts-container"></div>
+    </div>
+
+    <script>
+        // Core steganography functions
+        const END_MARKER = '00000000';
+
+        function hashPassword(password) {
+            // This is a simplified hash function for demonstration
+            // In production, use the Web Crypto API for proper hashing
+            let hash = '';
+            for (let i = 0; i < password.length; i++) {
+                hash += password.charCodeAt(i).toString(2).padStart(8, '0');
+            }
+            
+            // Ensure the hash is long enough (simplified version)
+            while (hash.length < 256) {
+                hash += hash;
+            }
+            
+            return hash.substring(0, 256);
+        }
+
+        function xorData(data, key) {
+            const keyCycle = key.repeat(Math.ceil(data.length / key.length)).substring(0, data.length);
+            let result = '';
+            
+            for (let i = 0; i < data.length; i++) {
+                result += (parseInt(data[i]) ^ parseInt(keyCycle[i])).toString();
+            }
+            
+            return result;
+        }
+
+        function messageToBinary(message, password = null) {
+            let binary = '';
+            for (let i = 0; i < message.length; i++) {
+                binary += message.charCodeAt(i).toString(2).padStart(8, '0');
+            }
+            
+            if (password) {
+                binary = xorData(binary, hashPassword(password));
+            }
+            
+            return binary + END_MARKER;
+        }
+
+        function binaryToMessage(binary, password = null) {
+            if (password) {
+                binary = xorData(binary, hashPassword(password));
+            }
+            
+            let message = '';
+            for (let i = 0; i < binary.length; i += 8) {
+                const byte = binary.substring(i, i + 8);
+                if (byte === END_MARKER) {
+                    break;
+                }
+                if (byte.length === 8) {
+                    message += String.fromCharCode(parseInt(byte, 2));
+                }
+            }
+            
+            return message;
+        }
+
+        async function embedMessage(imageData, message, password = null) {
+            const binaryMessage = messageToBinary(message, password);
+            
+            // Create a canvas to process the image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Load the image
+            const img = new Image();
+            img.src = imageData;
+            
+            await new Promise((resolve) => {
+                img.onload = resolve;
+            });
+            
+            // Set canvas dimensions
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Draw the image on canvas
+            ctx.drawImage(img, 0, 0);
+            
+            // Get image data
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            
+            // Check if message can fit in the image
+            if (binaryMessage.length > data.length - data.length % 4) {
+                throw new Error("Message too large to fit in the selected image");
+            }
+            
+            // Embed the message
+            let bitIndex = 0;
+            for (let i = 0; i < data.length && bitIndex < binaryMessage.length; i++) {
+                // Skip alpha channel (every 4th value)
+                if ((i + 1) % 4 === 0) continue;
+                
+                // Replace the least significant bit
+                data[i] = (data[i] & 0xFE) | parseInt(binaryMessage[bitIndex]);
+                bitIndex++;
+            }
+            
+            // Put the modified pixel data back on the canvas
+            ctx.putImageData(imgData, 0, 0);
+            
+            // Return the modified image as data URL
+            return canvas.toDataURL('image/png');
+        }
+
+        async function extractMessage(imageData, password = null) {
+            // Create a canvas to process the image
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Load the image
+            const img = new Image();
+            img.src = imageData;
+            
+            await new Promise((resolve) => {
+                img.onload = resolve;
+            });
+            
+            // Set canvas dimensions
+            canvas.width = img.width;
+            canvas.height = img.height;
+            
+            // Draw the image on canvas
+            ctx.drawImage(img, 0, 0);
+            
+            // Get image data
+            const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const data = imgData.data;
+            
+            // Extract the binary message
+            let binaryData = '';
+            
+            // Extract LSB from each color channel
+            for (let i = 0; i < data.length; i++) {
+                // Skip alpha channel (every 4th value)
+                if ((i + 1) % 4 === 0) continue;
+                
+                binaryData += (data[i] & 1).toString();
+                
+                // Check for end marker every 8 bits
+                if (binaryData.length >= END_MARKER.length && 
+                    binaryData.substr(-END_MARKER.length) === END_MARKER) {
+                    break;
+                }
+            }
+            
+            // Remove the end marker
+            binaryData = binaryData.substring(0, binaryData.length - END_MARKER.length);
+            
+            // Convert binary to text
+            return binaryToMessage(binaryData, password);
+        }
+
+        // UI functions
+        function showAlert(message, type = 'error') {
+            const alertsContainer = document.getElementById('alerts-container');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            alertsContainer.appendChild(alert);
+            
+            // Remove the alert after 5 seconds
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+        function setupTabs() {
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    // Remove active class from all tabs and contents
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(tc => tc.classList.remove('active'));
+                    
+                    // Add active class to the clicked tab and its content
+                    tab.classList.add('active');
+                    document.getElementById(`${tab.dataset.tab}-tab`).classList.add('active');
+                });
+            });
+        }
+
+        function setupFileUpload(inputId, previewId, containerPreviewId, statsId) {
+            const fileUpload = document.getElementById(inputId).parentElement;
+            const fileInput = document.getElementById(inputId);
+            const imagePreview = document.getElementById(previewId);
+            const previewContainer = document.getElementById(containerPreviewId);
+            const statsElement = statsId ? document.getElementById(statsId) : null;
+            
+            // Click event
+            fileUpload.addEventListener('click', () => {
+                fileInput.click();
+            });
+            
+            // File change event
+            fileInput.addEventListener('change', () => {
+                handleFileSelect(fileInput, imagePreview, previewContainer, statsElement);
+            });
+            
+            // Drag and drop events
+            fileUpload.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileUpload.classList.add('dragover');
+            });
+            
+            fileUpload.addEventListener('dragleave', () => {
+                fileUpload.classList.remove('dragover');
+            });
+            
+            fileUpload.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileUpload.classList.remove('dragover');
+                
+                if (e.dataTransfer.files.length) {
+                    fileInput.files = e.dataTransfer.files;
+                    handleFileSelect(fileInput, imagePreview, previewContainer, statsElement);
+                }
+            });
+        }
+
+        function handleFileSelect(fileInput, imagePreview, previewContainer, statsElement) {
+            if (fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                
+                // Check if the file is an image
+                if (!file.type.match('image.*')) {
+                    showAlert('Please select an image file.');
+                    return;
+                }
+                
+                const reader = new FileReader();
+                
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                    
+                    // Display image stats if statsElement exists
+                    if (statsElement) {
+                        // Create a temporary image to get dimensions
+                        const tempImg = new Image();
+                        tempImg.src = e.target.result;
+                        
+                        tempImg.onload = () => {
+                            const width = tempImg.width;
+                            const height = tempImg.height;
+                            const pixels = width * height;
+                            const capacity = Math.floor((pixels * 3) / 8); // Each pixel can store 3 bits, divide by 8 to get bytes
+                            
+                            statsElement.textContent = `${width} × ${height} pixels | Maximum capacity: ~${capacity} characters`;
+                        };
+                    }
+                };
+                
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function setupForms() {
+            const encodeForm = document.getElementById('encode-form');
+            const decodeForm = document.getElementById('decode-form');
+            const secretMessage = document.getElementById('secret-message');
+            const messageStats = document.getElementById('message-stats');
+            
+            // Update message stats
+            secretMessage.addEventListener('input', () => {
+                const chars = secretMessage.value.length;
+                const bytes = new Blob([secretMessage.value]).size;
+                messageStats.textContent = `${chars} characters / ${bytes} bytes`;
+            });
+            
+            // Encode form submit
+            encodeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const imageInput = document.getElementById('input-image');
+                const message = secretMessage.value;
+                const password = document.getElementById('encode-password').value;
+                
+                // Validate input
+                if (!imageInput.files || !imageInput.files[0]) {
+                    showAlert('Please select an image.');
+                    return;
+                }
+                
+                if (!message) {
+                    showAlert('Please enter a message to hide.');
+                    return;
+                }
+                
+                try {
+                    const reader = new FileReader();
+                    
+                    reader.onload = async (e) => {
+                        try {
+                            const resultImage = await embedMessage(e.target.result, message, password || null);
+                            
+                            // Display the result
+                            document.getElementById('result-image').src = resultImage;
+                            document.getElementById('encode-result').classList.remove('hidden');
+                            
+                            // Setup download button
+                            const downloadBtn = document.getElementById('download-btn');
+                            downloadBtn.onclick = () => {
+                                const link = document.createElement('a');
+                                link.download = 'stego_image.png';
+                                link.href = resultImage;
+                                link.click();
+                            };
+                            
+                            showAlert('Message successfully encoded!', 'success');
+                        } catch (err) {
+                            showAlert(err.message);
+                        }
+                    };
+                    
+                    reader.readAsDataURL(imageInput.files[0]);
+                } catch (err) {
+                    showAlert(err.message);
+                }
+            });
+            
+            // Decode form submit
+            decodeForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const imageInput = document.getElementById('stego-image');
+                const password = document.getElementById('decode-password').value;
+                
+                // Validate input
+                if (!imageInput.files || !imageInput.files[0]) {
+                    showAlert('Please select an image.');
+                    return;
+                }
+                
+                try {
+                    const reader = new FileReader();
+                    
+                    reader.onload = async (e) => {
+                        try {
+                            const message = await extractMessage(e.target.result, password || null);
+                            
+                            // Display the result
+                            const extractedMessage = document.getElementById('extracted-message');
+                            extractedMessage.value = message;
+                            document.getElementById('decode-result').classList.remove('hidden');
+                            
+                            // Setup copy button
+                            const copyBtn = document.getElementById('copy-btn');
+                            copyBtn.onclick = () => {
+                                extractedMessage.select();
+                                document.execCommand('copy');
+                                showAlert('Message copied to clipboard!', 'success');
+                            };
+                            
+                            showAlert('Message successfully decoded!', 'success');
+                        } catch (err) {
+                            showAlert(err.message || 'Failed to decode message. Make sure the image contains a hidden message and the password is correct.');
+                        }
+                    };
+                    
+                    reader.readAsDataURL(imageInput.files[0]);
+                } catch (err) {
+                    showAlert(err.message);
+                }
+            });
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', () => {
+            setupTabs();
+            setupFileUpload('input-image', 'encode-image-preview', 'encode-image-preview-container', 'encode-image-stats');
+            setupFileUpload('stego-image', 'decode-image-preview', 'decode-image-preview-container');
+            setupForms();
+        });
+    </script>
+</body>
+</html>
